@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Político - Resultados en Tiempo Real</title>
+    
+    <!-- Hojas de estilo -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Contenedor principal -->
+    <div class="container-fluid">
+        
+        <!-- HEADER -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <i class="fas fa-chart-line logo-icon"></i>
+                    <div>
+                        <h1>Dashboard Político - Resultados</h1>
+                        <p class="subtitle">Datos cargados automáticamente desde Supabase</p>
+                        <div class="data-status">
+                            <span class="badge bg-success" id="data-status-badge">
+                                <i class="fas fa-sync fa-spin"></i> Cargando datos...
+                            </span>
+                            <span class="badge bg-info ms-2">
+                                <i class="fas fa-database"></i> Fuente: Supabase
+                            </span>
+                            <span class="badge bg-warning ms-2" id="last-update-badge">
+                                <i class="fas fa-clock"></i> Actualizando...
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- PANEL DE ESTADÍSTICAS -->
+        <div class="stats-container" id="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Total Registros</h3>
+                    <p id="total-registros" class="stat-number">0</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Votos Reportados</h3>
+                    <p id="votos-reportados" class="stat-number">0</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Ciudades</h3>
+                    <p id="total-ciudades" class="stat-number">0</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>% Reportado</h3>
+                    <p id="porcentaje-reportado" class="stat-number">0%</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Líderes</h3>
+                    <p id="total-lideres" class="stat-number">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <div class="main-content">
+            
+            <!-- COLUMNA IZQUIERDA -->
+            <div class="left-column">
+                <!-- Panel de Filtros -->
+                <div class="filters-card card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-filter"></i> Filtros de Visualización</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Ciudad:</label>
+                                <select id="filter-ciudad" class="form-select" disabled>
+                                    <option value="">Cargando ciudades...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Líder:</label>
+                                <select id="filter-lider" class="form-select" disabled>
+                                    <option value="">Cargando líderes...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Estado de Voto:</label>
+                                <select id="filter-voto" class="form-select">
+                                    <option value="">Todos</option>
+                                    <option value="true">Reportado</option>
+                                    <option value="false">No Reportado</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Mesa:</label>
+                                <select id="filter-mesa" class="form-select" disabled>
+                                    <option value="">Cargando mesas...</option>
+                                </select>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <button id="reset-filters" class="btn btn-secondary" disabled>
+                                        <i class="fas fa-redo"></i> Limpiar Filtros
+                                    </button>
+                                    <button id="export-data" class="btn btn-success" disabled>
+                                        <i class="fas fa-download"></i> Exportar Datos
+                                    </button>
+                                    <button id="refresh-data" class="btn btn-primary">
+                                        <i class="fas fa-sync"></i> Actualizar Datos
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de Datos -->
+                <div class="table-card card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="fas fa-table"></i> Datos de Votantes</h4>
+                        <span class="badge bg-primary" id="table-count">0 registros</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table id="data-table" class="table table-hover mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th><i class="fas fa-user-tie"></i> Líder</th>
+                                        <th><i class="fas fa-user"></i> Nombre</th>
+                                        <th><i class="fas fa-id-card"></i> Cédula</th>
+                                        <th><i class="fas fa-city"></i> Ciudad</th>
+                                        <th><i class="fas fa-school"></i> Puesto</th>
+                                        <th><i class="fas fa-chair"></i> Mesa</th>
+                                        <th><i class="fas fa-vote-yea"></i> Voto</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body">
+                                    <tr id="loading-row">
+                                        <td colspan="7" class="text-center py-5">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Cargando datos de Supabase...</span>
+                                            </div>
+                                            <p class="mt-3">Cargando datos desde Supabase...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMNA DERECHA -->
+            <div class="right-column">
+                <!-- Mapa -->
+                <div class="map-card card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="fas fa-map"></i> Mapa de Votantes</h4>
+                        <div class="map-controls">
+                            <button id="zoom-in" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button id="zoom-out" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button id="reset-map" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-sync"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="map"></div>
+                        <div class="map-legend">
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: #28a745;"></span>
+                                <span class="legend-text">Voto Reportado</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: #dc3545;"></span>
+                                <span class="legend-text">Voto No Reportado</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráficos -->
+                <div class="charts-row">
+                    <div class="chart-card card">
+                        <div class="card-header">
+                            <h4 class="mb-0"><i class="fas fa-chart-pie"></i> Distribución por Líder</h4>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="leader-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card card">
+                        <div class="card-header">
+                            <h4 class="mb-0"><i class="fas fa-chart-bar"></i> Votos por Ciudad</h4>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="city-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-text">
+                    <p>Dashboard Político &copy; 2024 | Datos cargados automáticamente desde Supabase</p>
+                </div>
+                <div class="footer-info">
+                    <span id="data-info">
+                        <i class="fas fa-database"></i> <span id="total-loaded">0</span> registros cargados
+                    </span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts externos -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- 🔑 Supabase + Configuración (¡IMPORTANTE!) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // 👇 CONFIGURA TUS CREDENCIALES DE SUPABASE AQUÍ
+        const supabaseUrl = "https://rijcidbtqviewjbjjsvu.supabase.co";
+        const supabaseKey = "sb_publishable_FhrhZcNz5mlSGD06XvAQ1Q_UMTNo4hO"; // Encuéntrala en Settings > API > Project API keys
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    </script>
+
+    <!-- Script principal -->
+    <script src="dashboard.js"></script>
+</body>
+</html>
