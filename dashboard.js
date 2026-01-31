@@ -30,6 +30,7 @@ const COLUMN_MAP = {
     'reporto voto': 'reportoVoto',
     'voto': 'reportoVoto',
     'reportado': 'reportoVoto',
+    'reporto_voto': 'reportoVoto',
     'telefono': 'telefono',
     'teléfono': 'telefono',
     'celular': 'telefono',
@@ -810,4 +811,5 @@ function showNotification(message, type = 'info') {
 window.loadDataFromSupabase = loadDataFromSupabase;
 window.applyFilters = applyFilters;
 window.resetFilters = resetFilters;
+
 window.exportData = exportData;
