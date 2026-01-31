@@ -17,6 +17,7 @@ const COLUMN_MAP = {
     'apellidos': 'apellidos',
     'cedula': 'cedula',
     'cédula': 'cedula',
+    'Cédula': 'cedula',
     'ciudad': 'ciudad',
     'puesto de votacion': 'puestoVotacion',
     'puesto_votacion': 'puestoVotacion',
@@ -813,3 +814,4 @@ window.applyFilters = applyFilters;
 window.resetFilters = resetFilters;
 
 window.exportData = exportData;
+
