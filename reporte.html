@@ -71,26 +71,66 @@
             }
 
             try {
+                // 1. Primero verificamos si la cédula existe en la base de datos
+                const { data: votante, error: errorBusqueda } = await supabaseClient
+                    .from("votos")
+                    .select("cedula, reporto_voto")
+                    .eq("cedula", cedula)  // ← CORREGIDO: usar "cedula" no "Cédula"
+                    .single();
+
+                console.log("Resultado búsqueda:", votante);
+                console.log("Error búsqueda:", errorBusqueda);
+
+                if (errorBusqueda && errorBusqueda.code === 'PGRST116') {
+                    // Cédula no encontrada
+                    alert("❌ Esta cédula no está registrada en la base de datos.");
+                    return;
+                }
+
+                if (errorBusqueda) {
+                    throw errorBusqueda;
+                }
+
+                // 2. Si existe, actualizamos el reporte
                 const { error } = await supabaseClient
                     .from("votos")
                     .update({
                         reporto_voto: true,
-                        puesto_de_votacion: puesto,  // ← ¡usa el nombre real de tu columna!
+                        puesto_de_votacion: puesto,
                         mesa: mesa,
                         fecha_reporte: new Date()
                     })
-                    .eq("Cédula", cedula);
+                    .eq("cedula", cedula);  // ← CORREGIDO: usar "cedula"
 
                 if (error) throw error;
 
-                alert("✅ ¡Voto reportado exitosamente!");
+                alert("✅ ¡Voto reportado exitosamente! El votante ahora aparece como 'SÍ' votó.");
                 document.getElementById("formVoto").reset();
+                
             } catch (err) {
-                console.error(err);
-                alert("❌ Error al reportar voto. Verifica que la cédula exista.");
+                console.error("Error detallado:", err);
+                alert(`❌ Error: ${err.message || "No se pudo reportar el voto"}`);
+            }
+        });
+
+        // Opcional: Verificar conexión al cargar la página
+        window.addEventListener('load', async () => {
+            try {
+                const { count, error } = await supabaseClient
+                    .from('votos')
+                    .select('*', { count: 'exact', head: true });
+                
+                if (error) {
+                    console.warn("Advertencia conexión:", error.message);
+                } else {
+                    console.log("✅ Conexión exitosa. Registros en votos:", count);
+                }
+            } catch (e) {
+                console.warn("No se pudo verificar conexión:", e.message);
             }
         });
     </script>
 </body>
 </html>
+
 
