@@ -69,7 +69,8 @@ async function loadDataFromSupabase() {
     try {
         const { data, error } = await supabaseClient
             .from("votos")
-            .select("*");
+            .select("*")
+            .range(0,9999);
 
         if (error) {
             throw new Error(`Error en Supabase: ${error.message}`);
@@ -814,5 +815,6 @@ window.applyFilters = applyFilters;
 window.resetFilters = resetFilters;
 
 window.exportData = exportData;
+
 
 
