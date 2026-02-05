@@ -67,26 +67,39 @@ async function loadDataFromSupabase() {
     updateStatus('Cargando datos desde Supabase...', 'info');
 
     try {
-        const { data, error } = await supabaseClient
-            .from("votos")
-            .select("*")
-            .range(0, 9999);
+        let allData = [];
+        let from = 0;
+        let to = 999;
+        let moreData = true;
 
-        if (error) {
-            throw new Error(`Error en Supabase: ${error.message}`);
+        while (moreData) {
+            const { data, error } = await supabaseClient
+                .from("votos")
+                .select("*")
+                .range(from, to);
+
+            if (error) {
+                throw new Error(`Error en Supabase: ${error.message}`);
+            }
+
+            if (data.length === 0) {
+                moreData = false;
+            } else {
+                allData = allData.concat(data);
+                from += 1000;
+                to += 1000;
+            }
         }
 
-        // Procesar datos (normaliza campos, parsea números, etc.)
-        politicalData = processSupabaseData(data);
+        politicalData = processSupabaseData(allData);
         filteredData = [...politicalData];
 
-        // Actualizar UI
         updateDashboard();
         updateLastUpdateTime();
+
         updateStatus(`✅ Datos cargados: ${politicalData.length} registros`, 'success');
 
         console.log(`✅ ${politicalData.length} registros cargados desde Supabase`);
-        console.log('📱 Columnas disponibles:', Object.keys(politicalData[0] || {}));
 
     } catch (error) {
         console.error('❌ Error cargando desde Supabase:', error);
@@ -815,6 +828,7 @@ window.applyFilters = applyFilters;
 window.resetFilters = resetFilters;
 
 window.exportData = exportData;
+
 
 
 
