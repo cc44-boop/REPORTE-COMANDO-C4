@@ -54,8 +54,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Cargar datos por primera vez desde Supabase
     loadDataFromSupabase();
 
-    // Configurar actualización automática cada 15 segundos
-    autoRefreshInterval = setInterval(loadDataFromSupabase, 60000);
+    // Configurar actualización automática cada 120 segundos
+    autoRefreshInterval = setInterval(loadDataFromSupabase, 120000);
 
     console.log('✅ Dashboard inicializado. Se cargará desde Supabase.');
 });
@@ -828,6 +828,7 @@ window.applyFilters = applyFilters;
 window.resetFilters = resetFilters;
 
 window.exportData = exportData;
+
 
 
 
